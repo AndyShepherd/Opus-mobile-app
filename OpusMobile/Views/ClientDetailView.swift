@@ -1,10 +1,20 @@
 import SwiftUI
 
+private func openEmail(_ address: String) {
+    let outlookURL = URL(string: "ms-outlook://compose?to=\(address)")
+    if let outlookURL, UIApplication.shared.canOpenURL(outlookURL) {
+        UIApplication.shared.open(outlookURL)
+    } else if let mailto = URL(string: "mailto:\(address)") {
+        UIApplication.shared.open(mailto)
+    }
+}
+
 struct ClientDetailView: View {
     let customer: Customer
 
     @State private var appeared = false
     @State private var expandedContactIDs: Set<String> = []
+    @State private var phoneSheetNumber: String?
 
     private let navy = Color("NavyBlue")
     private let gold = Color("BrandGold")
@@ -13,7 +23,6 @@ struct ClientDetailView: View {
     // #6: scaled metrics
     @ScaledMetric(relativeTo: .title) private var avatarSize: CGFloat = 76
     @ScaledMetric(relativeTo: .title) private var initialsSize: CGFloat = 28
-    @ScaledMetric(relativeTo: .body) private var actionIconSize: CGFloat = 20
     @ScaledMetric(relativeTo: .body) private var detailIconSize: CGFloat = 14
 
     private var kindIcon: String {
@@ -43,26 +52,18 @@ struct ClientDetailView: View {
                         .offset(y: appeared ? 0 : -10)
 
                     VStack(spacing: 16) {
-                        // Quick actions
-                        if !customer.email.isEmpty || !customer.phone.isEmpty {
-                            quickActions
-                                .opacity(appeared ? 1 : 0)
-                                .offset(y: appeared ? 0 : 15)
-                                .animation(.spring(response: 0.45, dampingFraction: 0.8).delay(0.15), value: appeared)
-                        }
-
                         // Details card
                         detailsCard
                             .opacity(appeared ? 1 : 0)
                             .offset(y: appeared ? 0 : 15)
-                            .animation(.spring(response: 0.45, dampingFraction: 0.8).delay(0.25), value: appeared)
+                            .animation(.spring(response: 0.45, dampingFraction: 0.8).delay(0.15), value: appeared)
 
                         // Contacts
                         if !customer.contacts.isEmpty {
                             contactsCard
                                 .opacity(appeared ? 1 : 0)
                                 .offset(y: appeared ? 0 : 15)
-                                .animation(.spring(response: 0.45, dampingFraction: 0.8).delay(0.35), value: appeared)
+                                .animation(.spring(response: 0.45, dampingFraction: 0.8).delay(0.25), value: appeared)
                         }
                     }
                     .padding(.horizontal)
@@ -81,22 +82,100 @@ struct ClientDetailView: View {
                 appeared = true
             }
         }
+        .confirmationDialog(
+            "Contact \(phoneSheetNumber ?? "")",
+            isPresented: Binding(
+                get: { phoneSheetNumber != nil },
+                set: { if !$0 { phoneSheetNumber = nil } }
+            ),
+            titleVisibility: .visible
+        ) {
+            if let number = phoneSheetNumber {
+                let digits = number.filter { $0.isNumber || $0 == "+" }
+                Button("Call") {
+                    if let url = URL(string: "tel:\(digits)") {
+                        UIApplication.shared.open(url)
+                    }
+                }
+                Button("iMessage") {
+                    if let url = URL(string: "sms:\(digits)") {
+                        UIApplication.shared.open(url)
+                    }
+                }
+                Button("WhatsApp") {
+                    if let url = URL(string: "https://wa.me/\(digits)") {
+                        UIApplication.shared.open(url)
+                    }
+                }
+                Button("Cancel", role: .cancel) {}
+            }
+        }
     }
 
     // MARK: - Hero Header (#13: proportional height)
 
     private func heroHeader(maxHeight: CGFloat) -> some View {
-        ZStack(alignment: .bottom) {
-            // Navy gradient background
-            LinearGradient(
-                colors: [navy, navy.opacity(0.85)],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .frame(height: min(maxHeight * 0.3, 200)) // #13: proportional, capped
-
-            // Decorative circles
+        VStack(spacing: 8) {
+            // Avatar
             ZStack {
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [kindColor.opacity(0.3), kindColor.opacity(0.1)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: avatarSize, height: avatarSize) // #6
+
+                Text(initials)
+                    .font(.system(size: initialsSize, weight: .bold, design: .rounded)) // #6
+                    .foregroundColor(.white)
+            }
+            .shadow(color: kindColor.opacity(0.3), radius: 12, y: 4)
+            .accessibilityHidden(true) // #1: name is read below
+
+            Text(customer.displayName)
+                .font(.title2.bold())
+                .foregroundColor(.white)
+                .multilineTextAlignment(.center)
+                .minimumScaleFactor(0.75)
+
+            HStack(spacing: 8) {
+                if !customer.type.isEmpty {
+                    Label(customer.type, systemImage: kindIcon)
+                        .font(.caption.weight(.medium))
+                        .foregroundColor(.white.opacity(0.7))
+                }
+
+                // #3: status with icon, not color alone
+                HStack(spacing: 3) {
+                    Image(systemName: customer.active ? "checkmark.circle.fill" : "minus.circle.fill")
+                        .font(.caption2)
+                    Text(customer.active ? "Active" : "Inactive")
+                        .font(.caption2.bold())
+                }
+                .foregroundColor(customer.active ? .green : .gray)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 3)
+                .background((customer.active ? Color.green : Color.gray).opacity(0.15))
+                .clipShape(Capsule())
+            }
+        }
+        .padding(.top, 12)
+        .padding(.bottom, 16)
+        .frame(maxWidth: .infinity)
+        .accessibilityElement(children: .combine) // #1
+        .accessibilityLabel("\(customer.displayName), \(customer.type), \(customer.active ? "Active" : "Inactive")")
+        .background {
+            ZStack {
+                LinearGradient(
+                    colors: [navy, navy.opacity(0.85)],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+
+                // Decorative circles
                 Circle()
                     .stroke(gold.opacity(0.06), lineWidth: 1)
                     .frame(width: 300, height: 300)
@@ -104,111 +183,11 @@ struct ClientDetailView: View {
                     .stroke(gold.opacity(0.04), lineWidth: 1)
                     .frame(width: 400, height: 400)
             }
-            .offset(y: -40)
             .accessibilityHidden(true) // #1
-
-            // Content
-            VStack(spacing: 12) {
-                // Avatar
-                ZStack {
-                    Circle()
-                        .fill(
-                            LinearGradient(
-                                colors: [kindColor.opacity(0.3), kindColor.opacity(0.1)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .frame(width: avatarSize, height: avatarSize) // #6
-
-                    Text(initials)
-                        .font(.system(size: initialsSize, weight: .bold, design: .rounded)) // #6
-                        .foregroundColor(.white)
-                }
-                .shadow(color: kindColor.opacity(0.3), radius: 12, y: 4)
-                .accessibilityHidden(true) // #1: name is read below
-
-                Text(customer.displayName)
-                    .font(.title2.bold())
-                    .foregroundColor(.white)
-                    .multilineTextAlignment(.center)
-                    .minimumScaleFactor(0.75)
-
-                HStack(spacing: 8) {
-                    if !customer.type.isEmpty {
-                        Label(customer.type, systemImage: kindIcon)
-                            .font(.caption.weight(.medium))
-                            .foregroundColor(.white.opacity(0.7))
-                    }
-
-                    // #3: status with icon, not color alone
-                    HStack(spacing: 3) {
-                        Image(systemName: customer.active ? "checkmark.circle.fill" : "minus.circle.fill")
-                            .font(.caption2)
-                        Text(customer.active ? "Active" : "Inactive")
-                            .font(.caption2.bold())
-                    }
-                    .foregroundColor(customer.active ? .green : .gray)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 3)
-                    .background((customer.active ? Color.green : Color.gray).opacity(0.15))
-                    .clipShape(Capsule())
-                }
-            }
-            .padding(.bottom, 24)
-            .accessibilityElement(children: .combine) // #1
-            .accessibilityLabel("\(customer.displayName), \(customer.type), \(customer.active ? "Active" : "Inactive")")
         }
         .clipShape(
             RoundedShape(corners: [.bottomLeft, .bottomRight], radius: 28)
         )
-    }
-
-    // MARK: - Quick Actions
-
-    private var quickActions: some View {
-        HStack(spacing: 12) {
-            if !customer.phone.isEmpty {
-                ActionButton(
-                    icon: "phone.fill",
-                    label: "Call",
-                    color: .green,
-                    iconSize: actionIconSize // #6
-                ) {
-                    let digits = customer.phone.filter { $0.isNumber || $0 == "+" }
-                    if let url = URL(string: "tel:\(digits)") {
-                        UIApplication.shared.open(url)
-                    }
-                }
-            }
-
-            if !customer.email.isEmpty {
-                ActionButton(
-                    icon: "envelope.fill",
-                    label: "Email",
-                    color: Color(red: 0.20, green: 0.45, blue: 0.70), // #4: darker
-                    iconSize: actionIconSize // #6
-                ) {
-                    if let url = URL(string: "mailto:\(customer.email)") {
-                        UIApplication.shared.open(url)
-                    }
-                }
-            }
-
-            if !customer.phone.isEmpty {
-                ActionButton(
-                    icon: "message.fill",
-                    label: "Message",
-                    color: goldDark, // #4
-                    iconSize: actionIconSize // #6
-                ) {
-                    let digits = customer.phone.filter { $0.isNumber || $0 == "+" }
-                    if let url = URL(string: "sms:\(digits)") {
-                        UIApplication.shared.open(url)
-                    }
-                }
-            }
-        }
     }
 
     // MARK: - Details Card
@@ -243,23 +222,27 @@ struct ClientDetailView: View {
             }
 
             if !customer.email.isEmpty {
-                DetailCardRow(
+                TappableDetailRow(
                     icon: "envelope.fill",
-                    iconColor: Color(red: 0.20, green: 0.45, blue: 0.70), // #4
+                    iconColor: Color(red: 0.20, green: 0.45, blue: 0.70),
                     label: "Email",
                     value: customer.email,
-                    iconSize: detailIconSize // #6
-                )
+                    iconSize: detailIconSize
+                ) {
+                    openEmail(customer.email)
+                }
             }
 
             if !customer.phone.isEmpty {
-                DetailCardRow(
+                TappableDetailRow(
                     icon: "phone.fill",
                     iconColor: .green,
                     label: "Phone",
                     value: customer.phone,
-                    iconSize: detailIconSize // #6
-                )
+                    iconSize: detailIconSize
+                ) {
+                    phoneSheetNumber = customer.phone
+                }
             }
 
             if !customer.type.isEmpty {
@@ -363,27 +346,19 @@ struct ClientDetailView: View {
                         VStack(spacing: 0) {
                             if !contact.phone.isEmpty {
                                 contactActionRow(icon: "phone.fill", label: "Phone", value: contact.phone, color: .green) {
-                                    let digits = contact.phone.filter { $0.isNumber || $0 == "+" }
-                                    if let url = URL(string: "tel:\(digits)") {
-                                        UIApplication.shared.open(url)
-                                    }
+                                    phoneSheetNumber = contact.phone
                                 }
                             }
 
                             if !contact.mobile.isEmpty {
                                 contactActionRow(icon: "iphone", label: "Mobile", value: contact.mobile, color: Color(red: 0.20, green: 0.45, blue: 0.70)) {
-                                    let digits = contact.mobile.filter { $0.isNumber || $0 == "+" }
-                                    if let url = URL(string: "tel:\(digits)") {
-                                        UIApplication.shared.open(url)
-                                    }
+                                    phoneSheetNumber = contact.mobile
                                 }
                             }
 
                             if !contact.email.isEmpty {
                                 contactActionRow(icon: "envelope.fill", label: "Email", value: contact.email, color: Color(red: 0.20, green: 0.45, blue: 0.70)) {
-                                    if let url = URL(string: "mailto:\(contact.email)") {
-                                        UIApplication.shared.open(url)
-                                    }
+                                    openEmail(contact.email)
                                 }
                             }
                         }
@@ -440,61 +415,62 @@ struct ClientDetailView: View {
     }
 }
 
-// MARK: - Action Button (#8: custom press feedback)
+// MARK: - Tappable Detail Row
 
-private struct ActionButton: View {
+private struct TappableDetailRow: View {
     let icon: String
+    let iconColor: Color
     let label: String
-    let color: Color
-    var iconSize: CGFloat = 20
+    let value: String
+    var iconSize: CGFloat = 14
+    var isLast: Bool = false
     let action: () -> Void
 
-    @State private var tapCount = 0 // #5: haptic trigger
-
     var body: some View {
-        Button {
-            tapCount += 1
-            action()
-        } label: {
-            VStack(spacing: 8) {
-                ZStack {
-                    Circle()
-                        .fill(color.opacity(0.12))
-                        .frame(width: 52, height: 52)
+        VStack(spacing: 0) {
+            Button(action: action) {
+                HStack(spacing: 14) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(iconColor.opacity(0.1))
+                            .frame(width: 34, height: 34)
 
-                    Image(systemName: icon)
-                        .font(.system(size: iconSize)) // #6
-                        .foregroundColor(color)
+                        Image(systemName: icon)
+                            .font(.system(size: iconSize, weight: .medium))
+                            .foregroundColor(iconColor)
+                    }
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(label)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+
+                        Text(value)
+                            .font(.body)
+                            .foregroundColor(iconColor)
+                    }
+
+                    Spacer()
+
+                    Image(systemName: "chevron.right")
+                        .font(.caption2.weight(.semibold))
+                        .foregroundColor(.secondary)
                 }
-
-                Text(label)
-                    .font(.caption2.weight(.medium)) // #6: text style
-                    .foregroundColor(.secondary)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 10)
+                .contentShape(Rectangle())
             }
-            .frame(maxWidth: .infinity)
-            .frame(minHeight: 44) // ensure 44pt min tap target
-            .padding(.vertical, 14)
-            .background(
-                RoundedRectangle(cornerRadius: 14)
-                    .fill(Color("CardBackground"))
-                    .shadow(color: .black.opacity(0.04), radius: 6, y: 2)
-            )
+            .buttonStyle(.plain)
+            .accessibilityLabel("\(label): \(value)")
+            .accessibilityHint("Double tap to \(label == "Email" ? "send email" : "contact this number")")
+
+            if !isLast {
+                Divider()
+                    .padding(.leading, 68)
+            } else {
+                Spacer().frame(height: 8)
+            }
         }
-        .buttonStyle(PressableStyle()) // #8
-        .accessibilityLabel(label) // #1
-        .accessibilityHint("Double tap to \(label.lowercased()) this client") // #1
-        .sensoryFeedback(.impact(weight: .light), trigger: tapCount) // #5
-    }
-}
-
-// MARK: - Pressable Button Style (#8)
-
-private struct PressableStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .scaleEffect(configuration.isPressed ? 0.96 : 1.0)
-            .opacity(configuration.isPressed ? 0.85 : 1.0)
-            .animation(.easeInOut(duration: 0.15), value: configuration.isPressed)
     }
 }
 
