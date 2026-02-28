@@ -16,6 +16,7 @@ struct LoginView: View {
 
     // Haptic triggers (#5)
     @State private var loginResult: LoginResult?
+    @State private var showSettings = false
 
     private enum Field: Hashable { case username, password }
     private enum LoginResult { case success, failure }
@@ -66,6 +67,18 @@ struct LoginView: View {
                 }
                 .ignoresSafeArea()
             }
+        }
+        .sheet(isPresented: $showSettings) {
+            NavigationStack {
+                SettingsView()
+                    .toolbar {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button("Done") { showSettings = false }
+                                .foregroundColor(gold)
+                        }
+                    }
+            }
+            .environmentObject(authService)
         }
         // #5: haptic feedback
         .sensoryFeedback(.success, trigger: loginResult) { _, new in new == .success }
@@ -124,6 +137,9 @@ struct LoginView: View {
                 .scaleEffect(logoAppeared ? 1 : 0.6)
                 .opacity(logoAppeared ? 1 : 0)
                 .accessibilityLabel("Opus Accountancy logo") // #1
+                .onTapGesture(count: 2) {
+                    showSettings = true
+                }
         }
     }
 

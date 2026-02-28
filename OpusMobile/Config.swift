@@ -19,6 +19,7 @@ enum ServerEnvironment: String, CaseIterable, Identifiable {
 enum Config {
     private static let environmentKey = "server_environment"
     private static let customURLKey = "custom_api_url"
+    private static let skipSSLKey = "skip_ssl_validation"
 
     static var selectedEnvironment: ServerEnvironment {
         get {
@@ -40,6 +41,11 @@ enum Config {
     static var customURL: String {
         get { UserDefaults.standard.string(forKey: customURLKey) ?? "" }
         set { UserDefaults.standard.set(newValue, forKey: customURLKey) }
+    }
+
+    static var skipSSLValidation: Bool {
+        get { UserDefaults.standard.bool(forKey: skipSSLKey) }
+        set { UserDefaults.standard.set(newValue, forKey: skipSSLKey) }
     }
 
     static var apiBaseURL: String {
