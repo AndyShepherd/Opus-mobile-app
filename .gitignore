@@ -1,0 +1,21 @@
+# macOS
+.DS_Store
+
+# Xcode user data
+xcuserdata/
+
+# Build artifacts
+DerivedData/
+build/
+Build/
+
+# Swift Package Manager
+.swiftpm/
+
+# Claude Code
+.claude/
+
+# IDE
+.vscode/
+.idea/
+*.swp
