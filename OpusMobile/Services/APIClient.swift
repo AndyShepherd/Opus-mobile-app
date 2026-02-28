@@ -23,7 +23,31 @@ enum APIError: LocalizedError {
     }
 }
 
+private class SSLBypassDelegate: NSObject, URLSessionDelegate {
+    func urlSession(
+        _ session: URLSession,
+        didReceive challenge: URLAuthenticationChallenge,
+        completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void
+    ) {
+        if challenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodServerTrust,
+           let trust = challenge.protectionSpace.serverTrust {
+            completionHandler(.useCredential, URLCredential(trust: trust))
+        } else {
+            completionHandler(.performDefaultHandling, nil)
+        }
+    }
+}
+
 enum APIClient {
+    private static let sslBypassSession: URLSession = {
+        let config = URLSessionConfiguration.default
+        return URLSession(configuration: config, delegate: SSLBypassDelegate(), delegateQueue: nil)
+    }()
+
+    private static var session: URLSession {
+        Config.skipSSLValidation ? sslBypassSession : .shared
+    }
+
     static func request<T: Decodable>(
         path: String,
         method: String = "GET",
@@ -49,7 +73,7 @@ enum APIClient {
         let data: Data
         let response: URLResponse
         do {
-            (data, response) = try await URLSession.shared.data(for: request)
+            (data, response) = try await session.data(for: request)
         } catch {
             throw APIError.networkError(error)
         }

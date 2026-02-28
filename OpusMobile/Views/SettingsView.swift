@@ -5,6 +5,7 @@ struct SettingsView: View {
 
     @State private var selectedEnvironment = Config.selectedEnvironment
     @State private var customURL = Config.customURL
+    @State private var skipSSL = Config.skipSSLValidation
     @State private var showSaved = false
 
     private let navy = Color("NavyBlue")
@@ -35,10 +36,11 @@ struct SettingsView: View {
                             .lineLimit(1)
                     }
                 }
+                Toggle("Skip SSL Validation", isOn: $skipSSL)
             } header: {
                 Text("API Server")
             } footer: {
-                Text("Changing the server requires signing in again.")
+                Text("Changing the server requires signing in again. Enable Skip SSL for servers with self-signed certificates.")
             }
 
             Section {
@@ -77,10 +79,13 @@ struct SettingsView: View {
 
     private func save() {
         Config.selectedEnvironment = selectedEnvironment
+        Config.skipSSLValidation = skipSSL
         if selectedEnvironment == .custom {
             Config.customURL = customURL
         }
-        authService.logout()
+        if authService.isAuthenticated {
+            authService.logout()
+        }
         showSaved = true
     }
 }
