@@ -17,6 +17,7 @@
 		A10008 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10008 /* LoginView.swift */; };
 		A10009 /* ClientListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10009 /* ClientListView.swift */; };
 		A1000A /* ClientDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000A /* ClientDetailView.swift */; };
+		A1000C /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000D /* SettingsView.swift */; };
 		A1000B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B1000B /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
@@ -31,6 +32,7 @@
 		B10008 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		B10009 /* ClientListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClientListView.swift; sourceTree = "<group>"; };
 		B1000A /* ClientDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClientDetailView.swift; sourceTree = "<group>"; };
+		B1000D /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		B1000B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B1000C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		C10001 /* OpusMobile.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OpusMobile.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -94,6 +96,7 @@
 				B10008 /* LoginView.swift */,
 				B10009 /* ClientListView.swift */,
 				B1000A /* ClientDetailView.swift */,
+				B1000D /* SettingsView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -185,6 +188,7 @@
 				A10008 /* LoginView.swift in Sources */,
 				A10009 /* ClientListView.swift in Sources */,
 				A1000A /* ClientDetailView.swift in Sources */,
+				A1000C /* SettingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

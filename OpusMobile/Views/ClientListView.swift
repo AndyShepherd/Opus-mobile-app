@@ -81,6 +81,12 @@ struct ClientListView: View {
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Menu {
+                        NavigationLink {
+                            SettingsView()
+                        } label: {
+                            Label("Settings", systemImage: "gearshape")
+                        }
+
                         Button(role: .destructive) {
                             withAnimation {
                                 authService.logout()
