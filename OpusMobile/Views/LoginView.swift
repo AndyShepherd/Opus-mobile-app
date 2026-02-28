@@ -6,6 +6,7 @@ struct LoginView: View {
     @State private var username = ""
     @State private var password = ""
     @State private var isLoading = false
+    @State private var isBiometricLoading = false
     @State private var errorMessage: String?
 
     // Animation states
@@ -92,6 +93,9 @@ struct LoginView: View {
             }
             withAnimation(.linear(duration: 60).repeatForever(autoreverses: false)) {
                 ringRotation = 360
+            }
+            if Config.biometricLoginEnabled && BiometricService.hasStoredCredentials {
+                biometricSignIn()
             }
         }
     }
@@ -218,6 +222,32 @@ struct LoginView: View {
             .opacity(username.isEmpty || password.isEmpty ? 0.6 : 1)
             .accessibilityLabel("Sign In") // #1
             .accessibilityHint("Double tap to sign in to your account") // #1
+
+            if Config.biometricLoginEnabled && BiometricService.hasStoredCredentials {
+                Button {
+                    biometricSignIn()
+                } label: {
+                    HStack(spacing: 8) {
+                        if isBiometricLoading {
+                            ProgressView()
+                                .tint(.white)
+                        } else {
+                            Image(systemName: BiometricService.systemImageName)
+                            Text("Sign in with \(BiometricService.displayName)")
+                        }
+                    }
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: buttonHeight)
+                    .background(
+                        RoundedRectangle(cornerRadius: 14)
+                            .stroke(.white.opacity(0.3), lineWidth: 1.5)
+                    )
+                }
+                .disabled(isBiometricLoading)
+                .accessibilityLabel("Sign in with \(BiometricService.displayName)")
+            }
         }
         .padding(24)
         .background(
@@ -309,6 +339,29 @@ struct LoginView: View {
                 loginResult = .failure // #5
             }
             isLoading = false
+        }
+    }
+
+    private func biometricSignIn() {
+        guard !isBiometricLoading else { return }
+        isBiometricLoading = true
+        errorMessage = nil
+
+        Task {
+            do {
+                try await authService.attemptBiometricLogin()
+                loginResult = .success
+            } catch is CancellationError {
+                // User cancelled — no error message
+            } catch BiometricError.cancelled {
+                // User cancelled — no error message
+            } catch {
+                withAnimation(.spring(response: 0.3)) {
+                    errorMessage = error.localizedDescription
+                }
+                loginResult = .failure
+            }
+            isBiometricLoading = false
         }
     }
 }

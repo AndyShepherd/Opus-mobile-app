@@ -6,6 +6,7 @@ struct SettingsView: View {
     @State private var selectedEnvironment = Config.selectedEnvironment
     @State private var customURL = Config.customURL
     @State private var skipSSL = Config.skipSSLValidation
+    @State private var biometricEnabled = Config.biometricLoginEnabled
     @State private var showSaved = false
 
     private let navy = Color("NavyBlue")
@@ -43,6 +44,19 @@ struct SettingsView: View {
                 Text("Changing the server requires signing in again. Enable Skip SSL for servers with self-signed certificates.")
             }
 
+            if BiometricService.isAvailable {
+                Section {
+                    Toggle(
+                        "Sign in with \(BiometricService.displayName)",
+                        isOn: $biometricEnabled
+                    )
+                } header: {
+                    Text("Security")
+                } footer: {
+                    Text("Use \(BiometricService.displayName) to quickly sign in on future launches.")
+                }
+            }
+
             Section {
                 Button("Save") {
                     save()
@@ -73,19 +87,33 @@ struct SettingsView: View {
         .alert("Saved", isPresented: $showSaved) {
             Button("OK") {}
         } message: {
-            Text("Server changed to \(Config.apiBaseURL). Please sign in again.")
+            Text("Settings have been saved.")
         }
     }
 
     private func save() {
+        let serverChanged = selectedEnvironment != Config.selectedEnvironment
+            || skipSSL != Config.skipSSLValidation
+            || (selectedEnvironment == .custom && customURL != Config.customURL)
+
         Config.selectedEnvironment = selectedEnvironment
         Config.skipSSLValidation = skipSSL
         if selectedEnvironment == .custom {
             Config.customURL = customURL
         }
-        if authService.isAuthenticated {
-            authService.logout()
+
+        // Handle biometric toggle
+        let biometricChanged = biometricEnabled != Config.biometricLoginEnabled
+        Config.biometricLoginEnabled = biometricEnabled
+        if biometricChanged && !biometricEnabled {
+            BiometricService.clearAll()
         }
-        showSaved = true
+
+        if serverChanged && authService.isAuthenticated {
+            authService.logout()
+            showSaved = true
+        } else if biometricChanged || serverChanged {
+            showSaved = true
+        }
     }
 }

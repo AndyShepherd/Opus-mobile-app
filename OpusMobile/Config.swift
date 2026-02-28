@@ -20,6 +20,7 @@ enum Config {
     private static let environmentKey = "server_environment"
     private static let customURLKey = "custom_api_url"
     private static let skipSSLKey = "skip_ssl_validation"
+    private static let biometricKey = "biometric_login_enabled"
 
     static var selectedEnvironment: ServerEnvironment {
         get {
@@ -46,6 +47,11 @@ enum Config {
     static var skipSSLValidation: Bool {
         get { UserDefaults.standard.bool(forKey: skipSSLKey) }
         set { UserDefaults.standard.set(newValue, forKey: skipSSLKey) }
+    }
+
+    static var biometricLoginEnabled: Bool {
+        get { UserDefaults.standard.bool(forKey: biometricKey) }
+        set { UserDefaults.standard.set(newValue, forKey: biometricKey) }
     }
 
     static var apiBaseURL: String {
