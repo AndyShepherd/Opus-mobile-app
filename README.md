@@ -6,6 +6,7 @@ Native iOS companion app for the [Opus Accountancy Practice Manager](https://git
 
 - **Client Management** — Browse, search, and filter clients with offline cache
 - **Client Detail** — Company info, contacts, and quick actions (call, email, message)
+- **Time Tracking** — Log time against clients or non-client activities; weekly list with day grouping and monthly calendar grid with drill-down
 - **Secure Authentication** — JWT login with iOS Keychain storage and proactive token refresh before expiry
 - **Network Resilience** — Automatic retry with exponential backoff for transient network errors and server 429/503 responses
 - **Biometric Login** — Face ID / Touch ID for quick sign-in on subsequent launches
@@ -39,9 +40,9 @@ Default login: `admin` / `changeme`
 See the **[Wiki](https://github.com/AndyShepherd/Opus-mobile-app/wiki)** for detailed documentation:
 
 - [Architecture](https://github.com/AndyShepherd/Opus-mobile-app/wiki/Architecture) — Project structure, layers, and data flow
-- [Views](https://github.com/AndyShepherd/Opus-mobile-app/wiki/Views) — Login, Client List, Client Detail, Lock Screen
+- [Views](https://github.com/AndyShepherd/Opus-mobile-app/wiki/Views) — Login, Client List, Client Detail, Time Entries, Log Time, Lock Screen
 - [Services](https://github.com/AndyShepherd/Opus-mobile-app/wiki/Services) — API client, auth, Keychain, session management
-- [Models](https://github.com/AndyShepherd/Opus-mobile-app/wiki/Models) — Customer, Contact, User
+- [Models](https://github.com/AndyShepherd/Opus-mobile-app/wiki/Models) — Customer, Contact, User, TimeEntry, Services, Activities
 - [Configuration](https://github.com/AndyShepherd/Opus-mobile-app/wiki/Configuration) — Build config and branding
 - [Backend API](https://github.com/AndyShepherd/Opus-mobile-app/wiki/Backend-API) — Endpoints and local setup
 
