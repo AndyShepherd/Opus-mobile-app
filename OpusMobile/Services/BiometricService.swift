@@ -21,9 +21,10 @@ enum BiometricService {
         case none
     }
 
-    /// Checks hardware capability. Creates a fresh LAContext each call because
-    /// context state can't be reused after evaluation.
-    static var biometricType: BiometricType {
+    /// Cached once on first access — the device's biometric hardware doesn't change
+    /// while the app is running, so there's no need to create a new LAContext and
+    /// evaluate policy on every SwiftUI body re-render.
+    private static let cachedBiometricType: BiometricType = {
         let context = LAContext()
         guard context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: nil) else {
             return .none
@@ -33,6 +34,10 @@ enum BiometricService {
         case .touchID: return .touchID
         default: return .none
         }
+    }()
+
+    static var biometricType: BiometricType {
+        cachedBiometricType
     }
 
     static var isAvailable: Bool {
@@ -58,10 +63,21 @@ enum BiometricService {
 
     // MARK: - Credential Check (no biometric prompt)
 
-    /// Checks if credentials exist without triggering a biometric prompt.
-    /// `interactionNotAllowed = true` tells the Keychain to return errSecInteractionNotAllowed
-    /// instead of showing the Face ID / Touch ID dialog — that status still confirms the item exists.
+    /// Cached credential existence check. The initial value is resolved lazily via a
+    /// Keychain query, then kept in sync by saveCredentials() and clearAll() — avoiding
+    /// a Keychain round-trip on every SwiftUI body evaluation.
+    private static var cachedHasCredentials: Bool?
+
     static var hasStoredCredentials: Bool {
+        if let cached = cachedHasCredentials { return cached }
+        let result = checkKeychainForCredentials()
+        cachedHasCredentials = result
+        return result
+    }
+
+    /// Performs the actual Keychain query. Only called once per app session — subsequent
+    /// reads come from the cache.
+    private static func checkKeychainForCredentials() -> Bool {
         let context = LAContext()
         context.interactionNotAllowed = true
 
@@ -119,6 +135,7 @@ enum BiometricService {
         saveItem(key: tokenKey, value: token, accessControl: accessControl)
         saveItem(key: usernameKey, value: username, accessControl: accessControl)
         saveItem(key: passwordKey, value: password, accessControl: accessControl)
+        cachedHasCredentials = true
     }
 
     // MARK: - Clear
@@ -128,6 +145,7 @@ enum BiometricService {
         deleteItem(key: tokenKey)
         deleteItem(key: usernameKey)
         deleteItem(key: passwordKey)
+        cachedHasCredentials = false
     }
 
     // MARK: - Private Helpers
