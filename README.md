@@ -7,6 +7,7 @@ Native iOS companion app for the [Opus Accountancy Practice Manager](https://git
 - **Client Management** — Browse, search, and filter clients
 - **Client Detail** — Company info, contacts, and quick actions (call, email, message)
 - **Secure Authentication** — JWT login with iOS Keychain storage and proactive token refresh before expiry
+- **Network Resilience** — Automatic retry with exponential backoff for transient network errors and server 429/503 responses
 - **Biometric Login** — Face ID / Touch ID for quick sign-in on subsequent launches
 - **Session Lock** — Auto-locks after configurable inactivity timeout; unlock via Face ID, Touch ID, or device passcode
 
