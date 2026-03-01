@@ -20,6 +20,8 @@
 		A1000B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B1000B /* Assets.xcassets */; };
 		A1000C /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000D /* SettingsView.swift */; };
 		A1000D /* BiometricService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000E /* BiometricService.swift */; };
+		A1000E /* SessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000F /* SessionManager.swift */; };
+		A1000F /* LockScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10010 /* LockScreenView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -37,6 +39,8 @@
 		B1000C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B1000D /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		B1000E /* BiometricService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricService.swift; sourceTree = "<group>"; };
+		B1000F /* SessionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionManager.swift; sourceTree = "<group>"; };
+		B10010 /* LockScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockScreenView.swift; sourceTree = "<group>"; };
 		C10001 /* OpusMobile.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OpusMobile.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -89,6 +93,7 @@
 				B10006 /* AuthService.swift */,
 				B10007 /* APIClient.swift */,
 				B1000E /* BiometricService.swift */,
+				B1000F /* SessionManager.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -100,6 +105,7 @@
 				B10009 /* ClientListView.swift */,
 				B1000A /* ClientDetailView.swift */,
 				B1000D /* SettingsView.swift */,
+				B10010 /* LockScreenView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -193,6 +199,8 @@
 				A1000A /* ClientDetailView.swift in Sources */,
 				A1000C /* SettingsView.swift in Sources */,
 				A1000D /* BiometricService.swift in Sources */,
+				A1000E /* SessionManager.swift in Sources */,
+				A1000F /* LockScreenView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
