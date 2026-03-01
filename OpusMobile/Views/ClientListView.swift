@@ -8,6 +8,7 @@ struct ClientListView: View {
     @State private var isLoading = false
     @State private var errorMessage: String?
     @State private var activeFilter: FilterKind = .all
+    @State private var lastUpdated: Date?
 
     private enum FilterKind: String, CaseIterable {
         case all = "Total"
@@ -124,6 +125,16 @@ struct ClientListView: View {
                     .listRowBackground(Color.clear)
                     .listRowSeparator(.hidden)
                     .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
+
+                if let lastUpdated {
+                    Text("Updated \(lastUpdated, format: .relative(presentation: .named))")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
+                        .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 4, trailing: 16))
+                }
             }
 
             ForEach(filtered) { customer in
@@ -261,17 +272,29 @@ struct ClientListView: View {
     // MARK: - Data
 
     private func fetchClients() async {
+        // Load from cache on first call so clients appear instantly (no spinner)
+        if customers.isEmpty, let cached = ClientCache.load() {
+            customers = cached.customers
+            lastUpdated = cached.lastUpdated
+        }
+
         isLoading = true
         errorMessage = nil
 
         do {
-            customers = try await authService.authenticatedRequest(
+            let fresh: [Customer] = try await authService.authenticatedRequest(
                 path: "/api/customers"
             )
+            customers = fresh
+            ClientCache.save(fresh)
+            lastUpdated = Date()
         } catch APIError.unauthorized {
             // authenticatedRequest already handled logout after exhausting retries
         } catch {
-            errorMessage = error.localizedDescription
+            // Only show error if we have no cached data to fall back on
+            if customers.isEmpty {
+                errorMessage = error.localizedDescription
+            }
         }
 
         isLoading = false
