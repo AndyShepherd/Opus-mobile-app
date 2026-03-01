@@ -1,5 +1,7 @@
 import Foundation
 
+/// A named contact within a company client (e.g. director, accountant).
+/// Uses custom decoding because the backend may omit any field — defaults prevent crashes.
 struct Contact: Codable, Identifiable, Hashable {
     let id: String
     let name: String
@@ -13,6 +15,8 @@ struct Contact: Codable, Identifiable, Hashable {
         case id, name, role, email, phone, mobile, isPrimary
     }
 
+    // Custom decoder: every field is optional in the API response, so we default missing values
+    // to empty strings (or a generated UUID for id) to avoid nil-handling throughout the UI.
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decodeIfPresent(String.self, forKey: .id) ?? UUID().uuidString
@@ -25,19 +29,22 @@ struct Contact: Codable, Identifiable, Hashable {
     }
 }
 
+/// A client record. `clientKind` is "person" or "company", determining display logic throughout the app.
+/// Hashable conformance is needed for NavigationLink(value:) in the client list.
 struct Customer: Codable, Identifiable, Hashable {
     let id: String
-    let clientId: String
-    let name: String
-    let company: String
+    let clientId: String      // User-facing code like "ABC001"
+    let name: String           // Personal name (always present)
+    let company: String        // Company name (empty for individuals)
     let email: String
     let phone: String
-    let clientKind: String
-    let type: String
+    let clientKind: String     // "person" or "company" — drives UI branching
+    let type: String           // e.g. "Limited Company", "Sole Trader", "Partnership"
     let active: Bool
-    let contacts: [Contact]
+    let contacts: [Contact]    // Company contacts — empty for individuals
 
-    /// The correct display name: company name for companies, personal name for individuals.
+    /// Display name: individuals show their personal name, companies show their company name
+    /// (falling back to personal name if company is somehow empty).
     var displayName: String {
         if clientKind == "person" {
             return name
@@ -49,6 +56,8 @@ struct Customer: Codable, Identifiable, Hashable {
         case id, clientId, name, company, email, phone, clientKind, type, active, contacts
     }
 
+    // Custom decoder for the same reason as Contact — the backend's MongoDB documents
+    // may lack fields, so we default everything except `id` (which is always present).
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(String.self, forKey: .id)

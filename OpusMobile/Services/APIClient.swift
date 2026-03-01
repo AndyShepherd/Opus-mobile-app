@@ -1,5 +1,7 @@
 import Foundation
 
+/// Typed API errors with user-facing descriptions. The `.unauthorized` case triggers
+/// automatic logout in calling code (see ClientListView.fetchClients).
 enum APIError: LocalizedError {
     case invalidURL
     case unauthorized
@@ -16,6 +18,7 @@ enum APIError: LocalizedError {
         case .serverError(let code):
             return "Server error (\(code))"
         case .decodingError:
+            // Don't expose raw decoding errors to users — they're not actionable
             return "Failed to read server response"
         case .networkError(let error):
             return error.localizedDescription
@@ -23,6 +26,8 @@ enum APIError: LocalizedError {
     }
 }
 
+// DEBUG-only: accepts any server certificate, needed for the internal LAN server
+// which uses a self-signed cert. Compiled out entirely in release builds.
 #if DEBUG
 private class SSLBypassDelegate: NSObject, URLSessionDelegate {
     func urlSession(
@@ -40,7 +45,10 @@ private class SSLBypassDelegate: NSObject, URLSessionDelegate {
 }
 #endif
 
+/// Generic HTTP client for the Opus PM backend. Uses an enum (not class) since all
+/// methods are static and no instances are needed.
 enum APIClient {
+    // The SSL bypass session is lazily initialised once and reused for all requests
     #if DEBUG
     private static let sslBypassSession: URLSession = {
         let config = URLSessionConfiguration.default
@@ -48,6 +56,8 @@ enum APIClient {
     }()
     #endif
 
+    /// Selects the appropriate URLSession: bypass session if SSL skip is enabled (debug only),
+    /// otherwise the default shared session.
     private static var session: URLSession {
         #if DEBUG
         Config.skipSSLValidation ? sslBypassSession : .shared
@@ -56,6 +66,8 @@ enum APIClient {
         #endif
     }
 
+    /// Generic JSON request. The return type is inferred from the call site, so callers
+    /// write e.g. `let users: [Customer] = try await APIClient.request(path: "/api/customers")`.
     static func request<T: Decodable>(
         path: String,
         method: String = "GET",
@@ -90,6 +102,7 @@ enum APIClient {
             throw APIError.networkError(URLError(.badServerResponse))
         }
 
+        // 401 is handled specially — callers use this to trigger logout
         if httpResponse.statusCode == 401 {
             throw APIError.unauthorized
         }

@@ -9,13 +9,13 @@ struct LoginView: View {
     @State private var isBiometricLoading = false
     @State private var errorMessage: String?
 
-    // Animation states
+    // Animation states for the staggered entrance effect
     @State private var logoAppeared = false
     @State private var formAppeared = false
     @State private var ringRotation: Double = 0
     @FocusState private var focusedField: Field?
 
-    // Haptic triggers (#5)
+    // Value changes on these trigger .sensoryFeedback modifiers for haptic feedback
     @State private var loginResult: LoginResult?
     @State private var showSettings = false
 
@@ -25,7 +25,8 @@ struct LoginView: View {
     private let navy = Color("NavyBlue")
     private let gold = Color("BrandGold")
 
-    // Scaled metrics for Dynamic Type (#6)
+    // @ScaledMetric makes these sizes scale with the user's Dynamic Type setting,
+    // so controls remain proportional at larger accessibility text sizes
     @ScaledMetric(relativeTo: .body) private var fieldIconSize: CGFloat = 14
     @ScaledMetric(relativeTo: .body) private var fieldHeight: CGFloat = 50
     @ScaledMetric(relativeTo: .body) private var buttonHeight: CGFloat = 52
@@ -81,19 +82,23 @@ struct LoginView: View {
             }
             .environmentObject(authService)
         }
-        // #5: haptic feedback
+        // Haptic feedback on login result — .sensoryFeedback triggers when the value changes
         .sensoryFeedback(.success, trigger: loginResult) { _, new in new == .success }
         .sensoryFeedback(.error, trigger: loginResult) { _, new in new == .failure }
+        // .onAppear (not .task) here because we need synchronous animation setup, not async work
         .onAppear {
+            // Staggered entrance: logo fades in first, then the form slides up
             withAnimation(.easeOut(duration: 0.8)) {
                 logoAppeared = true
             }
             withAnimation(.easeOut(duration: 0.6).delay(0.3)) {
                 formAppeared = true
             }
+            // Slow continuous rotation for the decorative background rings
             withAnimation(.linear(duration: 60).repeatForever(autoreverses: false)) {
                 ringRotation = 360
             }
+            // Auto-trigger biometric login if the user has it enabled
             if Config.biometricLoginEnabled && BiometricService.hasStoredCredentials {
                 biometricSignIn()
             }
@@ -136,11 +141,13 @@ struct LoginView: View {
             Image("OpusLogo")
                 .resizable()
                 .scaledToFit()
-                .frame(width: min(logoSize, 180), height: min(logoSize, 180)) // #6, #18
+                // Capped at 180pt so it doesn't overwhelm the screen at large Dynamic Type sizes
+                .frame(width: min(logoSize, 180), height: min(logoSize, 180))
                 .shadow(color: gold.opacity(0.3), radius: 20, y: 4)
                 .scaleEffect(logoAppeared ? 1 : 0.6)
                 .opacity(logoAppeared ? 1 : 0)
-                .accessibilityLabel("Opus Accountancy logo") // #1
+                .accessibilityLabel("Opus Accountancy logo")
+                // Hidden gesture: double-tap logo opens settings (useful before login)
                 .onTapGesture(count: 2) {
                     showSettings = true
                 }
@@ -158,7 +165,8 @@ struct LoginView: View {
 
                 Text("Sign in to manage your clients")
                     .font(.subheadline)
-                    .foregroundColor(.white.opacity(0.6)) // #12: raised from 0.5
+                    // 0.6 opacity (not 0.5) to meet WCAG contrast on the dark background
+                    .foregroundColor(.white.opacity(0.6))
             }
             .padding(.top, 8)
 
@@ -207,7 +215,7 @@ struct LoginView: View {
                     }
                 }
                 .frame(maxWidth: .infinity)
-                .frame(height: buttonHeight) // #6
+                .frame(height: buttonHeight)
                 .background(
                     LinearGradient(
                         colors: [gold, gold.opacity(0.85)],
@@ -220,8 +228,8 @@ struct LoginView: View {
             }
             .disabled(username.isEmpty || password.isEmpty || isLoading)
             .opacity(username.isEmpty || password.isEmpty ? 0.6 : 1)
-            .accessibilityLabel("Sign In") // #1
-            .accessibilityHint("Double tap to sign in to your account") // #1
+            .accessibilityLabel("Sign In")
+            .accessibilityHint("Double tap to sign in to your account")
 
             if Config.biometricLoginEnabled && BiometricService.hasStoredCredentials {
                 Button {
@@ -281,35 +289,41 @@ struct LoginView: View {
     ) -> some View {
         HStack(spacing: 12) {
             Image(systemName: icon)
-                .font(.system(size: fieldIconSize, weight: .medium)) // #6
+                .font(.system(size: fieldIconSize, weight: .medium))
+                // Icon highlights gold when its field is focused for visual feedback
                 .foregroundColor(focusedField == field ? gold : .white.opacity(0.4))
                 .frame(width: 20)
                 .animation(.easeInOut(duration: 0.2), value: focusedField)
-                .accessibilityHidden(true) // #1: decorative, label comes from field
+                // Decorative — the text field itself provides the accessible label
+                .accessibilityHidden(true)
 
             Group {
                 if isSecure {
                     SecureField(placeholder, text: text)
                         .focused($focusedField, equals: field)
                         .textContentType(.password)
-                        .submitLabel(.go) // #9
-                        .onSubmit { signIn() } // #9
+                        // "Go" on the keyboard return key signals this is the final field
+                        .submitLabel(.go)
+                        .onSubmit { signIn() }
                 } else {
                     TextField(placeholder, text: text)
                         .focused($focusedField, equals: field)
                         .textContentType(.username)
                         .autocorrectionDisabled()
                         .textInputAutocapitalization(.never)
-                        .submitLabel(.next) // #9
-                        .onSubmit { focusedField = .password } // #9
+                        // "Next" advances focus to password; "Go" on password submits the form
+                        .submitLabel(.next)
+                        .onSubmit { focusedField = .password }
                 }
             }
-            .font(.body) // #6: uses text style
+            // Uses .body text style (not a fixed size) so it scales with Dynamic Type
+            .font(.body)
             .foregroundColor(.white)
             .tint(gold)
         }
         .padding(.horizontal, 16)
-        .frame(minHeight: fieldHeight) // #6: minHeight instead of fixed
+        // minHeight (not fixed) so the field can grow when Dynamic Type is large
+        .frame(minHeight: fieldHeight)
         .background(
             RoundedRectangle(cornerRadius: 12)
                 .fill(.white.opacity(focusedField == field ? 0.12 : 0.07))
@@ -331,12 +345,12 @@ struct LoginView: View {
         Task {
             do {
                 try await authService.login(username: username, password: password)
-                loginResult = .success // #5
+                loginResult = .success  // Triggers success haptic via .sensoryFeedback
             } catch {
                 withAnimation(.spring(response: 0.3)) {
                     errorMessage = error.localizedDescription
                 }
-                loginResult = .failure // #5
+                loginResult = .failure  // Triggers error haptic via .sensoryFeedback
             }
             isLoading = false
         }

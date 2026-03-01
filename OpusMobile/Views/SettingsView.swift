@@ -1,8 +1,11 @@
 import SwiftUI
 
+/// Settings screen. In DEBUG builds: full server picker, SSL toggle, and biometric toggle.
+/// In RELEASE builds: only the biometric toggle is shown (server is locked to production).
 struct SettingsView: View {
     @EnvironmentObject private var authService: AuthService
 
+    // Server settings are DEBUG-only — compiled out of release builds entirely
     #if DEBUG
     @State private var selectedEnvironment = Config.selectedEnvironment
     @State private var customURL = Config.customURL
@@ -99,6 +102,7 @@ struct SettingsView: View {
 
     private func save() {
         #if DEBUG
+        // Detect server changes so we can force re-auth if the server endpoint changed
         let serverChanged = selectedEnvironment != Config.selectedEnvironment
             || skipSSL != Config.skipSSLValidation
             || (selectedEnvironment == .custom && customURL != Config.customURL)
@@ -110,14 +114,15 @@ struct SettingsView: View {
         }
         #endif
 
-        // Handle biometric toggle
         let biometricChanged = biometricEnabled != Config.biometricLoginEnabled
         Config.biometricLoginEnabled = biometricEnabled
+        // Clear stored credentials when biometric is disabled so they don't linger in the Keychain
         if biometricChanged && !biometricEnabled {
             BiometricService.clearAll()
         }
 
         #if DEBUG
+        // Changing server while authenticated requires logout — the token is for the old server
         if serverChanged && authService.isAuthenticated {
             authService.logout()
             showSaved = true
