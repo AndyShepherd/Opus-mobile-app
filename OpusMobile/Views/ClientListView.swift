@@ -51,24 +51,20 @@ struct ClientListView: View {
 
     var body: some View {
         NavigationStack {
-            ZStack {
-                Color(.systemGroupedBackground)
-                    .ignoresSafeArea()
-
-                Group {
-                    if isLoading && customers.isEmpty {
-                        loadingView
-                    } else if let errorMessage, customers.isEmpty {
-                        errorView(errorMessage)
-                    } else if customers.isEmpty {
-                        emptyView
-                    } else if filtered.isEmpty && !searchText.isEmpty {
-                        ContentUnavailableView.search(text: searchText)
-                    } else {
-                        clientList
-                    }
+            Group {
+                if isLoading && customers.isEmpty {
+                    loadingView
+                } else if let errorMessage, customers.isEmpty {
+                    errorView(errorMessage)
+                } else if customers.isEmpty {
+                    emptyView
+                } else if filtered.isEmpty && !searchText.isEmpty {
+                    ContentUnavailableView.search(text: searchText)
+                } else {
+                    clientList
                 }
             }
+            .background(Color(.systemGroupedBackground).ignoresSafeArea())
             .navigationTitle("Clients")
             .navigationDestination(for: Customer.self) { customer in
                 ClientDetailView(customer: customer)
@@ -106,6 +102,7 @@ struct ClientListView: View {
                     .accessibilityLabel("Account menu")
                 }
             }
+            .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(navy, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
