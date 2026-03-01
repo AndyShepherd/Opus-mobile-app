@@ -6,6 +6,7 @@ struct OpusMobileApp: App {
     @StateObject private var authService = AuthService()
     @StateObject private var sessionManager = SessionManager()
     @Environment(\.scenePhase) private var scenePhase
+    @State private var showPrivacyOverlay = false
 
     var body: some Scene {
         WindowGroup {
@@ -24,6 +25,20 @@ struct OpusMobileApp: App {
                         .transition(.opacity)
                         .zIndex(1)
                 }
+
+                // Privacy overlay hides sensitive data from the iOS task switcher snapshot
+                if showPrivacyOverlay {
+                    Color("NavyBlue")
+                        .ignoresSafeArea()
+                        .overlay {
+                            Image("OpusLogo")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 120)
+                        }
+                        .transition(.opacity)
+                        .zIndex(2)
+                }
             }
             // Animates the auth state change so login/list cross-fade smoothly
             .animation(.easeInOut(duration: 0.35), value: authService.isAuthenticated)
@@ -41,15 +56,19 @@ struct OpusMobileApp: App {
                 await authService.checkAuth()
             }
             .onChange(of: scenePhase) { _, newPhase in
-                guard authService.isAuthenticated else { return }
                 switch newPhase {
                 case .active:
+                    showPrivacyOverlay = false
+                    guard authService.isAuthenticated else { return }
                     sessionManager.appWillEnterForeground()
                     Task { await authService.checkTokenOnForeground() }
                 case .background:
+                    showPrivacyOverlay = true
+                    guard authService.isAuthenticated else { return }
                     sessionManager.appDidEnterBackground()
                 case .inactive:
-                    break  // Notification shade — don't lock prematurely
+                    // Show overlay on inactive too — iOS takes the snapshot during this phase
+                    showPrivacyOverlay = true
                 @unknown default:
                     break
                 }
