@@ -3,9 +3,11 @@ import SwiftUI
 struct SettingsView: View {
     @EnvironmentObject private var authService: AuthService
 
+    #if DEBUG
     @State private var selectedEnvironment = Config.selectedEnvironment
     @State private var customURL = Config.customURL
     @State private var skipSSL = Config.skipSSLValidation
+    #endif
     @State private var biometricEnabled = Config.biometricLoginEnabled
     @State private var showSaved = false
 
@@ -14,9 +16,10 @@ struct SettingsView: View {
 
     var body: some View {
         Form {
+            #if DEBUG
             Section {
                 Picker("Environment", selection: $selectedEnvironment) {
-                    ForEach(ServerEnvironment.allCases) { env in
+                    ForEach(ServerEnvironment.availableCases) { env in
                         Text(env.rawValue).tag(env)
                     }
                 }
@@ -43,6 +46,7 @@ struct SettingsView: View {
             } footer: {
                 Text("Changing the server requires signing in again. Enable Skip SSL for servers with self-signed certificates.")
             }
+            #endif
 
             if BiometricService.isAvailable {
                 Section {
@@ -65,6 +69,7 @@ struct SettingsView: View {
                 .foregroundColor(gold)
             }
 
+            #if DEBUG
             Section {
                 HStack {
                     Text("Current Server")
@@ -78,6 +83,7 @@ struct SettingsView: View {
             } header: {
                 Text("Active Connection")
             }
+            #endif
         }
         .navigationTitle("Settings")
         .navigationBarTitleDisplayMode(.inline)
@@ -92,6 +98,7 @@ struct SettingsView: View {
     }
 
     private func save() {
+        #if DEBUG
         let serverChanged = selectedEnvironment != Config.selectedEnvironment
             || skipSSL != Config.skipSSLValidation
             || (selectedEnvironment == .custom && customURL != Config.customURL)
@@ -101,6 +108,7 @@ struct SettingsView: View {
         if selectedEnvironment == .custom {
             Config.customURL = customURL
         }
+        #endif
 
         // Handle biometric toggle
         let biometricChanged = biometricEnabled != Config.biometricLoginEnabled
@@ -109,11 +117,17 @@ struct SettingsView: View {
             BiometricService.clearAll()
         }
 
+        #if DEBUG
         if serverChanged && authService.isAuthenticated {
             authService.logout()
             showSaved = true
         } else if biometricChanged || serverChanged {
             showSaved = true
         }
+        #else
+        if biometricChanged {
+            showSaved = true
+        }
+        #endif
     }
 }

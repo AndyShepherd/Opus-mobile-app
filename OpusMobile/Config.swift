@@ -2,6 +2,7 @@ import Foundation
 
 enum ServerEnvironment: String, CaseIterable, Identifiable {
     case local = "Local"
+    case `internal` = "Internal"
     case production = "Production"
     case custom = "Custom"
 
@@ -10,9 +11,18 @@ enum ServerEnvironment: String, CaseIterable, Identifiable {
     var defaultURL: String {
         switch self {
         case .local: return "http://localhost:8080"
-        case .production: return "https://172.16.16.142:8080"
+        case .internal: return "http://172.16.16.142:4200"
+        case .production: return "https://pm-api.opus-accountancy.co.uk"
         case .custom: return ""
         }
+    }
+
+    static var availableCases: [ServerEnvironment] {
+        #if DEBUG
+        return allCases
+        #else
+        return [.production]
+        #endif
     }
 }
 
@@ -45,8 +55,18 @@ enum Config {
     }
 
     static var skipSSLValidation: Bool {
-        get { UserDefaults.standard.bool(forKey: skipSSLKey) }
-        set { UserDefaults.standard.set(newValue, forKey: skipSSLKey) }
+        get {
+            #if DEBUG
+            return UserDefaults.standard.bool(forKey: skipSSLKey)
+            #else
+            return false
+            #endif
+        }
+        set {
+            #if DEBUG
+            UserDefaults.standard.set(newValue, forKey: skipSSLKey)
+            #endif
+        }
     }
 
     static var biometricLoginEnabled: Bool {
