@@ -34,6 +34,7 @@ enum Config {
     private static let customURLKey = "custom_api_url"
     private static let skipSSLKey = "skip_ssl_validation"
     private static let biometricKey = "biometric_login_enabled"
+    private static let timeoutKey = "session_timeout_minutes"
 
     static var selectedEnvironment: ServerEnvironment {
         get {
@@ -77,6 +78,14 @@ enum Config {
     static var biometricLoginEnabled: Bool {
         get { UserDefaults.standard.bool(forKey: biometricKey) }
         set { UserDefaults.standard.set(newValue, forKey: biometricKey) }
+    }
+
+    static var sessionTimeoutMinutes: Int {
+        get {
+            let val = UserDefaults.standard.integer(forKey: timeoutKey)
+            return val > 0 ? val : 5
+        }
+        set { UserDefaults.standard.set(newValue, forKey: timeoutKey) }
     }
 
     /// Resolved API URL — uses the custom URL if that environment is selected, otherwise the preset

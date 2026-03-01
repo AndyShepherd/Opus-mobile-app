@@ -12,6 +12,7 @@ struct SettingsView: View {
     @State private var skipSSL = Config.skipSSLValidation
     #endif
     @State private var biometricEnabled = Config.biometricLoginEnabled
+    @State private var timeoutMinutes = Config.sessionTimeoutMinutes
     @State private var showSaved = false
 
     private let navy = Color("NavyBlue")
@@ -51,16 +52,28 @@ struct SettingsView: View {
             }
             #endif
 
-            if BiometricService.isAvailable {
-                Section {
+            Section {
+                if BiometricService.isAvailable {
                     Toggle(
                         "Sign in with \(BiometricService.displayName)",
                         isOn: $biometricEnabled
                     )
-                } header: {
-                    Text("Security")
-                } footer: {
-                    Text("Use \(BiometricService.displayName) to quickly sign in on future launches.")
+                }
+
+                Picker("Auto-Lock Timeout", selection: $timeoutMinutes) {
+                    Text("1 minute").tag(1)
+                    Text("2 minutes").tag(2)
+                    Text("5 minutes").tag(5)
+                    Text("10 minutes").tag(10)
+                    Text("15 minutes").tag(15)
+                }
+            } header: {
+                Text("Security")
+            } footer: {
+                if BiometricService.isAvailable {
+                    Text("Use \(BiometricService.displayName) to sign in quickly. The app locks after \(timeoutMinutes) minute\(timeoutMinutes == 1 ? "" : "s") of inactivity.")
+                } else {
+                    Text("The app locks after \(timeoutMinutes) minute\(timeoutMinutes == 1 ? "" : "s") of inactivity.")
                 }
             }
 
@@ -116,6 +129,7 @@ struct SettingsView: View {
 
         let biometricChanged = biometricEnabled != Config.biometricLoginEnabled
         Config.biometricLoginEnabled = biometricEnabled
+        Config.sessionTimeoutMinutes = timeoutMinutes
         // Clear stored credentials when biometric is disabled so they don't linger in the Keychain
         if biometricChanged && !biometricEnabled {
             BiometricService.clearAll()
