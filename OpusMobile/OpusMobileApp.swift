@@ -45,6 +45,7 @@ struct OpusMobileApp: App {
                 switch newPhase {
                 case .active:
                     sessionManager.appWillEnterForeground()
+                    Task { await authService.checkTokenOnForeground() }
                 case .background:
                     sessionManager.appDidEnterBackground()
                 case .inactive:

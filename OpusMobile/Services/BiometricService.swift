@@ -138,6 +138,22 @@ enum BiometricService {
         cachedHasCredentials = true
     }
 
+    // MARK: - Token Update
+
+    /// Updates only the stored token without touching username/password.
+    /// Writing to biometric-protected Keychain doesn't require a Face ID prompt (only reads do),
+    /// so this is completely silent. Called after a token refresh to keep the biometric store in sync.
+    static func updateToken(_ token: String) {
+        guard hasStoredCredentials else { return }
+        guard let accessControl = SecAccessControlCreateWithFlags(
+            nil,
+            kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly,
+            .biometryCurrentSet,
+            nil
+        ) else { return }
+        saveItem(key: tokenKey, value: token, accessControl: accessControl)
+    }
+
     // MARK: - Clear
 
     /// Removes all biometric credentials (called on logout or when biometric login is disabled)
