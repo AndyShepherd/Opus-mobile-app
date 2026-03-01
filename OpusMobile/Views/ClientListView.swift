@@ -261,17 +261,15 @@ struct ClientListView: View {
     // MARK: - Data
 
     private func fetchClients() async {
-        guard let token = authService.token else { return }
         isLoading = true
         errorMessage = nil
 
         do {
-            customers = try await APIClient.request(
-                path: "/api/customers",
-                token: token
+            customers = try await authService.authenticatedRequest(
+                path: "/api/customers"
             )
         } catch APIError.unauthorized {
-            authService.logout()
+            // authenticatedRequest already handled logout after exhausting retries
         } catch {
             errorMessage = error.localizedDescription
         }
