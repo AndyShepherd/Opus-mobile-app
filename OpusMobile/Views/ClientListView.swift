@@ -371,7 +371,7 @@ private struct ClientRow: View {
 
                 HStack(spacing: 8) {
                     if !customer.clientId.isEmpty {
-                        Label(customer.clientId, systemImage: "number")
+                        Text(customer.clientId)
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }

@@ -213,7 +213,8 @@ struct ClientDetailView: View {
                     iconColor: goldDark, // #4
                     label: "Client Code",
                     value: customer.clientId,
-                    iconSize: detailIconSize // #6
+                    iconSize: detailIconSize, // #6
+                    copyable: true
                 )
             }
 
@@ -223,7 +224,8 @@ struct ClientDetailView: View {
                     iconColor: kindColor,
                     label: "Client Name",
                     value: customer.displayName,
-                    iconSize: detailIconSize
+                    iconSize: detailIconSize,
+                    copyable: true
                 )
             }
 
@@ -245,21 +247,11 @@ struct ClientDetailView: View {
                     iconColor: .green,
                     label: "Phone",
                     value: customer.phone,
-                    iconSize: detailIconSize
+                    iconSize: detailIconSize,
+                    isLast: true
                 ) {
                     phoneSheetNumber = customer.phone
                 }
-            }
-
-            if !customer.type.isEmpty {
-                DetailCardRow(
-                    icon: "briefcase.fill",
-                    iconColor: Color(red: 0.50, green: 0.40, blue: 0.70), // #4
-                    label: "Type",
-                    value: customer.type,
-                    iconSize: detailIconSize, // #6
-                    isLast: true
-                )
             } else {
                 Spacer().frame(height: 4)
             }
@@ -489,6 +481,7 @@ private struct DetailCardRow: View {
     let value: String
     var iconSize: CGFloat = 14
     var isLast: Bool = false
+    var copyable: Bool = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -508,9 +501,16 @@ private struct DetailCardRow: View {
                         .font(.caption)
                         .foregroundColor(.secondary)
 
-                    Text(value)
-                        .font(.body)
-                        .foregroundColor(.primary)
+                    if copyable {
+                        Text(value)
+                            .font(.body)
+                            .foregroundColor(.primary)
+                            .textSelection(.enabled)
+                    } else {
+                        Text(value)
+                            .font(.body)
+                            .foregroundColor(.primary)
+                    }
                 }
 
                 Spacer()
