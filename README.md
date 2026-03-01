@@ -4,7 +4,7 @@ Native iOS companion app for the [Opus Accountancy Practice Manager](https://git
 
 ## Features
 
-- **Client Management** — Browse, search, and filter clients
+- **Client Management** — Browse, search, and filter clients with offline cache
 - **Client Detail** — Company info, contacts, and quick actions (call, email, message)
 - **Secure Authentication** — JWT login with iOS Keychain storage and proactive token refresh before expiry
 - **Network Resilience** — Automatic retry with exponential backoff for transient network errors and server 429/503 responses
