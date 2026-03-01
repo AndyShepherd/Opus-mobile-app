@@ -73,12 +73,19 @@ struct ClientListView: View {
             .searchable(text: $searchText, prompt: "Search by code, name, email, phone")
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    Image("OpusLogo")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(height: 30)
-                        // Decorative — the nav title "Clients" provides the label
-                        .accessibilityHidden(true)
+                    Menu {
+                        NavigationLink {
+                            TimeEntryListView()
+                        } label: {
+                            Label("Time Entries", systemImage: "clock")
+                        }
+                    } label: {
+                        Image("OpusLogo")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(height: 30)
+                    }
+                    .accessibilityLabel("Navigation menu")
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Menu {
