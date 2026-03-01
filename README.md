@@ -8,13 +8,14 @@ Native iOS companion app for the [Opus Accountancy Practice Manager](https://git
 - **Client Detail** — Company info, contacts, and quick actions (call, email, message)
 - **Secure Authentication** — JWT login with iOS Keychain storage
 - **Biometric Login** — Face ID / Touch ID for quick sign-in on subsequent launches
+- **Session Lock** — Auto-locks after configurable inactivity timeout; unlock via Face ID, Touch ID, or device passcode
 
 ## Build Configurations
 
 | Config | API Server | Settings Screen | SSL Bypass |
 |---|---|---|---|
 | **Debug** | Switchable (Local / Internal / Production / Custom) | Full server picker, SSL toggle, Active Connection | Available via toggle |
-| **Release** | `https://pm-api.opus-accountancy.co.uk` (locked) | Biometric toggle only | Stripped from binary |
+| **Release** | `https://pm-api.opus-accountancy.co.uk` (locked) | Biometric toggle, auto-lock timeout | Stripped from binary |
 
 ## Getting Started
 
@@ -36,8 +37,8 @@ Default login: `admin` / `changeme`
 See the **[Wiki](https://github.com/AndyShepherd/Opus-mobile-app/wiki)** for detailed documentation:
 
 - [Architecture](https://github.com/AndyShepherd/Opus-mobile-app/wiki/Architecture) — Project structure, layers, and data flow
-- [Views](https://github.com/AndyShepherd/Opus-mobile-app/wiki/Views) — Login, Client List, Client Detail
-- [Services](https://github.com/AndyShepherd/Opus-mobile-app/wiki/Services) — API client, auth, Keychain
+- [Views](https://github.com/AndyShepherd/Opus-mobile-app/wiki/Views) — Login, Client List, Client Detail, Lock Screen
+- [Services](https://github.com/AndyShepherd/Opus-mobile-app/wiki/Services) — API client, auth, Keychain, session management
 - [Models](https://github.com/AndyShepherd/Opus-mobile-app/wiki/Models) — Customer, Contact, User
 - [Configuration](https://github.com/AndyShepherd/Opus-mobile-app/wiki/Configuration) — Build config and branding
 - [Backend API](https://github.com/AndyShepherd/Opus-mobile-app/wiki/Backend-API) — Endpoints and local setup
