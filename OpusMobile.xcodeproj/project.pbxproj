@@ -17,9 +17,9 @@
 		A10008 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10008 /* LoginView.swift */; };
 		A10009 /* ClientListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10009 /* ClientListView.swift */; };
 		A1000A /* ClientDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000A /* ClientDetailView.swift */; };
+		A1000B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B1000B /* Assets.xcassets */; };
 		A1000C /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000D /* SettingsView.swift */; };
 		A1000D /* BiometricService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000E /* BiometricService.swift */; };
-		A1000B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B1000B /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -33,10 +33,10 @@
 		B10008 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		B10009 /* ClientListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClientListView.swift; sourceTree = "<group>"; };
 		B1000A /* ClientDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClientDetailView.swift; sourceTree = "<group>"; };
-		B1000D /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
-		B1000E /* BiometricService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricService.swift; sourceTree = "<group>"; };
 		B1000B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B1000C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		B1000D /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		B1000E /* BiometricService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricService.swift; sourceTree = "<group>"; };
 		C10001 /* OpusMobile.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OpusMobile.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -323,6 +323,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = K4LPNVT9Y7;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = OpusMobile/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Opus;
@@ -354,6 +355,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = K4LPNVT9Y7;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = OpusMobile/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Opus;
@@ -400,7 +402,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
 	};
 	rootObject = F10004 /* Project object */;
 }
