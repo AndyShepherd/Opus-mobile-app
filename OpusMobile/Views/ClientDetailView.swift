@@ -17,6 +17,7 @@ struct ClientDetailView: View {
     @State private var appeared = false
     @State private var expandedContactIDs: Set<String> = []  // Tracks which contacts are expanded
     @State private var phoneSheetNumber: String?              // Non-nil triggers the phone action sheet
+    @State private var showingLogTime = false
 
     private let navy = Color("NavyBlue")
     private let gold = Color("BrandGold")
@@ -62,12 +63,18 @@ struct ClientDetailView: View {
                             .offset(y: appeared ? 0 : 15)
                             .animation(.spring(response: 0.45, dampingFraction: 0.8).delay(0.15), value: appeared)
 
+                        // Log Time
+                        logTimeCard
+                            .opacity(appeared ? 1 : 0)
+                            .offset(y: appeared ? 0 : 15)
+                            .animation(.spring(response: 0.45, dampingFraction: 0.8).delay(0.20), value: appeared)
+
                         // Contacts
                         if !customer.contacts.isEmpty {
                             contactsCard
                                 .opacity(appeared ? 1 : 0)
                                 .offset(y: appeared ? 0 : 15)
-                                .animation(.spring(response: 0.45, dampingFraction: 0.8).delay(0.25), value: appeared)
+                                .animation(.spring(response: 0.45, dampingFraction: 0.8).delay(0.30), value: appeared)
                         }
                     }
                     .padding(.horizontal)
@@ -84,6 +91,11 @@ struct ClientDetailView: View {
         .onAppear {
             withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
                 appeared = true
+            }
+        }
+        .sheet(isPresented: $showingLogTime) {
+            NavigationStack {
+                LogTimeView(customer: customer, onSave: {})
             }
         }
         // Phone action sheet: tapping any phone number shows Call / iMessage / WhatsApp options.
@@ -118,6 +130,47 @@ struct ClientDetailView: View {
                 Button("Cancel", role: .cancel) {}
             }
         }
+    }
+
+    // MARK: - Log Time Card
+
+    private var logTimeCard: some View {
+        Button {
+            showingLogTime = true
+        } label: {
+            HStack(spacing: 14) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(gold.opacity(0.1))
+                        .frame(width: 34, height: 34)
+
+                    Image(systemName: "clock.badge.plus")
+                        .font(.system(size: detailIconSize, weight: .medium))
+                        .foregroundColor(goldDark)
+                }
+
+                Text("Log Time")
+                    .font(.body)
+                    .foregroundColor(.primary)
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.caption2.weight(.semibold))
+                    .foregroundColor(.secondary)
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 14)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color("CardBackground"))
+                .shadow(color: .black.opacity(0.04), radius: 10, y: 3)
+        )
+        .accessibilityLabel("Log Time")
+        .accessibilityHint("Double tap to log time against this client")
     }
 
     // MARK: - Hero Header

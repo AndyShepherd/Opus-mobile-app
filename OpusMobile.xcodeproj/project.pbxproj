@@ -23,6 +23,9 @@
 		A1000E /* SessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000F /* SessionManager.swift */; };
 		A1000F /* LockScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10010 /* LockScreenView.swift */; };
 		A10010 /* ClientCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10011 /* ClientCache.swift */; };
+		A10011 /* TimeEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10012 /* TimeEntry.swift */; };
+		A10012 /* TimeEntryListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10013 /* TimeEntryListView.swift */; };
+		A10013 /* LogTimeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10014 /* LogTimeView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -43,6 +46,9 @@
 		B1000F /* SessionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionManager.swift; sourceTree = "<group>"; };
 		B10010 /* LockScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockScreenView.swift; sourceTree = "<group>"; };
 		B10011 /* ClientCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClientCache.swift; sourceTree = "<group>"; };
+		B10012 /* TimeEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeEntry.swift; sourceTree = "<group>"; };
+		B10013 /* TimeEntryListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeEntryListView.swift; sourceTree = "<group>"; };
+		B10014 /* LogTimeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogTimeView.swift; sourceTree = "<group>"; };
 		C10001 /* OpusMobile.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OpusMobile.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -84,6 +90,7 @@
 			children = (
 				B10003 /* User.swift */,
 				B10004 /* Customer.swift */,
+				B10012 /* TimeEntry.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -109,6 +116,8 @@
 				B1000A /* ClientDetailView.swift */,
 				B1000D /* SettingsView.swift */,
 				B10010 /* LockScreenView.swift */,
+				B10013 /* TimeEntryListView.swift */,
+				B10014 /* LogTimeView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -205,6 +214,9 @@
 				A1000E /* SessionManager.swift in Sources */,
 				A1000F /* LockScreenView.swift in Sources */,
 				A10010 /* ClientCache.swift in Sources */,
+				A10011 /* TimeEntry.swift in Sources */,
+				A10012 /* TimeEntryListView.swift in Sources */,
+				A10013 /* LogTimeView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
