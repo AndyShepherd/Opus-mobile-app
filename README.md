@@ -9,6 +9,13 @@ Native iOS companion app for the [Opus Accountancy Practice Manager](https://git
 - **Secure Authentication** — JWT login with iOS Keychain storage
 - **Biometric Login** — Face ID / Touch ID for quick sign-in on subsequent launches
 
+## Build Configurations
+
+| Config | API Server | Settings Screen | SSL Bypass |
+|---|---|---|---|
+| **Debug** | Switchable (Local / Internal / Production / Custom) | Full server picker, SSL toggle, Active Connection | Available via toggle |
+| **Release** | `https://pm-api.opus-accountancy.co.uk` (locked) | Biometric toggle only | Stripped from binary |
+
 ## Getting Started
 
 **Requirements:** Xcode 16+, iOS 17+, and the [Opus PM backend](https://github.com/AndyShepherd/Opus-PM) running.
