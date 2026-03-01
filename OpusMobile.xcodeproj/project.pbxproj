@@ -22,6 +22,7 @@
 		A1000D /* BiometricService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000E /* BiometricService.swift */; };
 		A1000E /* SessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000F /* SessionManager.swift */; };
 		A1000F /* LockScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10010 /* LockScreenView.swift */; };
+		A10010 /* ClientCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10011 /* ClientCache.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -41,6 +42,7 @@
 		B1000E /* BiometricService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiometricService.swift; sourceTree = "<group>"; };
 		B1000F /* SessionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionManager.swift; sourceTree = "<group>"; };
 		B10010 /* LockScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockScreenView.swift; sourceTree = "<group>"; };
+		B10011 /* ClientCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClientCache.swift; sourceTree = "<group>"; };
 		C10001 /* OpusMobile.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OpusMobile.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -94,6 +96,7 @@
 				B10007 /* APIClient.swift */,
 				B1000E /* BiometricService.swift */,
 				B1000F /* SessionManager.swift */,
+				B10011 /* ClientCache.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -201,6 +204,7 @@
 				A1000D /* BiometricService.swift in Sources */,
 				A1000E /* SessionManager.swift in Sources */,
 				A1000F /* LockScreenView.swift in Sources */,
+				A10010 /* ClientCache.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

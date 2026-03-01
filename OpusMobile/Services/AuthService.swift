@@ -272,6 +272,7 @@ final class AuthService: ObservableObject {
         tokenExpiryDate = nil
         KeychainHelper.delete(key: Self.tokenKey)
         BiometricService.clearAll()
+        ClientCache.clear()
         currentUser = nil
         isAuthenticated = false
     }
