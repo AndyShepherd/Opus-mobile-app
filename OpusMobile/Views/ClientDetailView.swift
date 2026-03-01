@@ -141,6 +141,12 @@ struct ClientDetailView: View {
                 .multilineTextAlignment(.center)
                 .minimumScaleFactor(0.75)
 
+            if !customer.clientId.isEmpty {
+                Label(customer.clientId, systemImage: "number")
+                    .font(.caption.weight(.medium))
+                    .foregroundColor(.white.opacity(0.6))
+            }
+
             HStack(spacing: 8) {
                 if !customer.type.isEmpty {
                     Label(customer.type, systemImage: kindIcon)
@@ -166,7 +172,7 @@ struct ClientDetailView: View {
         .padding(.bottom, 16)
         .frame(maxWidth: .infinity)
         .accessibilityElement(children: .combine) // #1
-        .accessibilityLabel("\(customer.displayName), \(customer.type), \(customer.active ? "Active" : "Inactive")")
+        .accessibilityLabel("\(customer.displayName), code \(customer.clientId), \(customer.type), \(customer.active ? "Active" : "Inactive")")
         .background {
             ZStack {
                 LinearGradient(
