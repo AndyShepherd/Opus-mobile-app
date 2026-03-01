@@ -2,7 +2,11 @@ import Foundation
 import LocalAuthentication
 import Security
 
+/// Manages biometric (Face ID / Touch ID) credential storage and retrieval.
+/// Uses a separate Keychain service from KeychainHelper so biometric-protected items
+/// don't interfere with the plain JWT store.
 enum BiometricService {
+    // Separate service identifier from KeychainHelper to isolate biometric items
     private static let service = "com.opus.mobile.biometric"
 
     private static let tokenKey = "biometric_token"
@@ -17,6 +21,8 @@ enum BiometricService {
         case none
     }
 
+    /// Checks hardware capability. Creates a fresh LAContext each call because
+    /// context state can't be reused after evaluation.
     static var biometricType: BiometricType {
         let context = LAContext()
         guard context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: nil) else {
@@ -33,6 +39,7 @@ enum BiometricService {
         biometricType != .none
     }
 
+    /// SF Symbol name matching the device's biometric type, for use in buttons/labels
     static var systemImageName: String {
         switch biometricType {
         case .faceID: return "faceid"
@@ -51,6 +58,9 @@ enum BiometricService {
 
     // MARK: - Credential Check (no biometric prompt)
 
+    /// Checks if credentials exist without triggering a biometric prompt.
+    /// `interactionNotAllowed = true` tells the Keychain to return errSecInteractionNotAllowed
+    /// instead of showing the Face ID / Touch ID dialog — that status still confirms the item exists.
     static var hasStoredCredentials: Bool {
         let context = LAContext()
         context.interactionNotAllowed = true
@@ -60,9 +70,10 @@ enum BiometricService {
             kSecAttrService as String: service,
             kSecAttrAccount as String: usernameKey,
             kSecUseAuthenticationContext as String: context,
-            kSecReturnData as String: false
+            kSecReturnData as String: false     // We only care about existence, not the value
         ]
         let status = SecItemCopyMatching(query as CFDictionary, nil)
+        // errSecInteractionNotAllowed means "item exists but needs biometric" — that's a yes
         return status == errSecSuccess || status == errSecInteractionNotAllowed
     }
 
@@ -74,10 +85,13 @@ enum BiometricService {
         let password: String
     }
 
+    /// Reads all three credentials using a single LAContext. Because the context is reused,
+    /// the user only sees one Face ID / Touch ID prompt for all three Keychain reads.
     static func authenticateAndReadAll() throws -> StoredCredentials {
         let context = LAContext()
         context.localizedReason = "Sign in to Opus"
 
+        // Reusing the same context across reads means one biometric prompt, not three
         guard let token = readItem(key: tokenKey, context: context),
               let username = readItem(key: usernameKey, context: context),
               let password = readItem(key: passwordKey, context: context) else {
@@ -89,6 +103,11 @@ enum BiometricService {
 
     // MARK: - Save
 
+    /// Stores credentials with biometric protection. Uses `.biometryCurrentSet` so that
+    /// if the user adds/removes a fingerprint or re-enrols Face ID, the items are invalidated
+    /// (preventing a new biometric user from accessing the old credentials).
+    /// `kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly` ensures items never leave the device
+    /// via backup and require a device passcode to exist.
     static func saveCredentials(token: String, username: String, password: String) {
         guard let accessControl = SecAccessControlCreateWithFlags(
             nil,
@@ -104,6 +123,7 @@ enum BiometricService {
 
     // MARK: - Clear
 
+    /// Removes all biometric credentials (called on logout or when biometric login is disabled)
     static func clearAll() {
         deleteItem(key: tokenKey)
         deleteItem(key: usernameKey)
@@ -112,6 +132,8 @@ enum BiometricService {
 
     // MARK: - Private Helpers
 
+    /// Reads a single Keychain item using the provided LAContext. The context carries
+    /// the biometric authentication state, so subsequent reads won't re-prompt.
     private static func readItem(key: String, context: LAContext) -> String? {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
@@ -134,6 +156,7 @@ enum BiometricService {
     private static func saveItem(key: String, value: String, accessControl: SecAccessControl) {
         guard let data = value.data(using: .utf8) else { return }
 
+        // Delete first to avoid errSecDuplicateItem (same pattern as KeychainHelper)
         let deleteQuery: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,

@@ -1,5 +1,7 @@
 import SwiftUI
 
+/// Opens an email compose window. Tries Outlook first (the firm's standard client),
+/// then falls back to the system mailto: handler (Apple Mail or whatever the user has configured).
 private func openEmail(_ address: String) {
     let outlookURL = URL(string: "ms-outlook://compose?to=\(address)")
     if let outlookURL, UIApplication.shared.canOpenURL(outlookURL) {
@@ -13,14 +15,14 @@ struct ClientDetailView: View {
     let customer: Customer
 
     @State private var appeared = false
-    @State private var expandedContactIDs: Set<String> = []
-    @State private var phoneSheetNumber: String?
+    @State private var expandedContactIDs: Set<String> = []  // Tracks which contacts are expanded
+    @State private var phoneSheetNumber: String?              // Non-nil triggers the phone action sheet
 
     private let navy = Color("NavyBlue")
     private let gold = Color("BrandGold")
-    private let goldDark = Color("GoldDark") // #4
+    private let goldDark = Color("GoldDark")  // Darker gold for WCAG contrast on light backgrounds
 
-    // #6: scaled metrics
+    // Scaled with Dynamic Type so the detail view stays proportional at accessibility sizes
     @ScaledMetric(relativeTo: .title) private var avatarSize: CGFloat = 76
     @ScaledMetric(relativeTo: .title) private var initialsSize: CGFloat = 28
     @ScaledMetric(relativeTo: .body) private var detailIconSize: CGFloat = 14
@@ -29,10 +31,11 @@ struct ClientDetailView: View {
         customer.clientKind == "person" ? "person.fill" : "building.2.fill"
     }
 
+    // Matches the colour convention from ClientRow — purple for individuals, blue for companies
     private var kindColor: Color {
         customer.clientKind == "person"
-            ? Color(red: 0.50, green: 0.40, blue: 0.70) // #4: darker
-            : Color(red: 0.20, green: 0.45, blue: 0.70) // #4: darker
+            ? Color(red: 0.50, green: 0.40, blue: 0.70)
+            : Color(red: 0.20, green: 0.45, blue: 0.70)
     }
 
     private var initials: String {
@@ -44,7 +47,8 @@ struct ClientDetailView: View {
     }
 
     var body: some View {
-        GeometryReader { geo in // #13: geometry for proportional hero
+        // GeometryReader provides screen height for proportional hero header sizing
+        GeometryReader { geo in
             ScrollView {
                 VStack(spacing: 0) {
                     heroHeader(maxHeight: geo.size.height)
@@ -82,6 +86,8 @@ struct ClientDetailView: View {
                 appeared = true
             }
         }
+        // Phone action sheet: tapping any phone number shows Call / iMessage / WhatsApp options.
+        // Uses a custom Binding to drive presentation from the optional phoneSheetNumber state.
         .confirmationDialog(
             "Contact \(phoneSheetNumber ?? "")",
             isPresented: Binding(
@@ -91,6 +97,7 @@ struct ClientDetailView: View {
             titleVisibility: .visible
         ) {
             if let number = phoneSheetNumber {
+                // Strip formatting to get raw digits for URL schemes
                 let digits = number.filter { $0.isNumber || $0 == "+" }
                 Button("Call") {
                     if let url = URL(string: "tel:\(digits)") {
@@ -103,6 +110,7 @@ struct ClientDetailView: View {
                     }
                 }
                 Button("WhatsApp") {
+                    // wa.me links work whether or not WhatsApp is installed (opens App Store if not)
                     if let url = URL(string: "https://wa.me/\(digits)") {
                         UIApplication.shared.open(url)
                     }
@@ -112,7 +120,7 @@ struct ClientDetailView: View {
         }
     }
 
-    // MARK: - Hero Header (#13: proportional height)
+    // MARK: - Hero Header
 
     private func heroHeader(maxHeight: CGFloat) -> some View {
         VStack(spacing: 8) {
@@ -126,14 +134,15 @@ struct ClientDetailView: View {
                             endPoint: .bottomTrailing
                         )
                     )
-                    .frame(width: avatarSize, height: avatarSize) // #6
+                    .frame(width: avatarSize, height: avatarSize)
 
                 Text(initials)
-                    .font(.system(size: initialsSize, weight: .bold, design: .rounded)) // #6
+                    .font(.system(size: initialsSize, weight: .bold, design: .rounded))
                     .foregroundColor(.white)
             }
             .shadow(color: kindColor.opacity(0.3), radius: 12, y: 4)
-            .accessibilityHidden(true) // #1: name is read below
+            // Decorative — the client name text below provides the accessible label
+            .accessibilityHidden(true)
 
             Text(customer.displayName)
                 .font(.title2.bold())
@@ -154,7 +163,7 @@ struct ClientDetailView: View {
                         .foregroundColor(.white.opacity(0.7))
                 }
 
-                // #3: status with icon, not color alone
+                // Active/inactive shown with both icon and text — not colour alone (WCAG)
                 HStack(spacing: 3) {
                     Image(systemName: customer.active ? "checkmark.circle.fill" : "minus.circle.fill")
                         .font(.caption2)
@@ -171,7 +180,8 @@ struct ClientDetailView: View {
         .padding(.top, 12)
         .padding(.bottom, 16)
         .frame(maxWidth: .infinity)
-        .accessibilityElement(children: .combine) // #1
+        // Single VoiceOver element for the entire hero with a descriptive label
+        .accessibilityElement(children: .combine)
         .accessibilityLabel("\(customer.displayName), code \(customer.clientId), \(customer.type), \(customer.active ? "Active" : "Inactive")")
         .background {
             ZStack {
@@ -189,7 +199,7 @@ struct ClientDetailView: View {
                     .stroke(gold.opacity(0.04), lineWidth: 1)
                     .frame(width: 400, height: 400)
             }
-            .accessibilityHidden(true) // #1
+            .accessibilityHidden(true)
         }
         .clipShape(
             RoundedShape(corners: [.bottomLeft, .bottomRight], radius: 28)
@@ -210,10 +220,10 @@ struct ClientDetailView: View {
             if !customer.clientId.isEmpty {
                 DetailCardRow(
                     icon: "number",
-                    iconColor: goldDark, // #4
+                    iconColor: goldDark,
                     label: "Client Code",
                     value: customer.clientId,
-                    iconSize: detailIconSize, // #6
+                    iconSize: detailIconSize,
                     copyable: true
                 )
             }
@@ -492,7 +502,7 @@ private struct DetailCardRow: View {
                         .frame(width: 34, height: 34)
 
                     Image(systemName: icon)
-                        .font(.system(size: iconSize, weight: .medium)) // #6
+                        .font(.system(size: iconSize, weight: .medium))
                         .foregroundColor(iconColor)
                 }
 
@@ -517,7 +527,7 @@ private struct DetailCardRow: View {
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 10)
-            .accessibilityElement(children: .combine) // #1
+            .accessibilityElement(children: .combine)
             .accessibilityLabel("\(label): \(value)")
 
             if !isLast {
@@ -531,6 +541,8 @@ private struct DetailCardRow: View {
 }
 
 // MARK: - Rounded Shape Helper
+// UIKit's UIBezierPath is used here because SwiftUI's built-in RoundedRectangle
+// only supports uniform corner radii — this allows rounding specific corners (bottom only for the hero).
 
 private struct RoundedShape: Shape {
     var corners: UIRectCorner

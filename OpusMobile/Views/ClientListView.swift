@@ -18,12 +18,15 @@ struct ClientListView: View {
 
     private let navy = Color("NavyBlue")
     private let gold = Color("BrandGold")
-    private let goldDark = Color("GoldDark") // #4: higher contrast variant
+    // Darker gold variant that meets WCAG contrast requirements on white/light backgrounds
+    private let goldDark = Color("GoldDark")
 
+    /// Filtered and sorted client list. Reversed so newest clients appear first
+    /// (the API returns oldest-first). Category filter and search are applied in sequence.
     private var filtered: [Customer] {
         var result = customers.reversed() as [Customer]
 
-        // Apply category filter
+        // Category filter from the stats banner chips
         switch activeFilter {
         case .all: break
         case .active: result = result.filter(\.active)
@@ -31,7 +34,7 @@ struct ClientListView: View {
         case .individuals: result = result.filter { $0.clientKind == "person" }
         }
 
-        // Apply search
+        // Free-text search across multiple fields for quick lookup
         if !searchText.isEmpty {
             let query = searchText.lowercased()
             result = result.filter {
@@ -58,7 +61,7 @@ struct ClientListView: View {
                     } else if let errorMessage, customers.isEmpty {
                         errorView(errorMessage)
                     } else if customers.isEmpty {
-                        emptyView // #7
+                        emptyView
                     } else if filtered.isEmpty && !searchText.isEmpty {
                         ContentUnavailableView.search(text: searchText)
                     } else {
@@ -77,7 +80,8 @@ struct ClientListView: View {
                         .resizable()
                         .scaledToFit()
                         .frame(height: 30)
-                        .accessibilityHidden(true) // #1: decorative in nav
+                        // Decorative — the nav title "Clients" provides the label
+                        .accessibilityHidden(true)
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Menu {
@@ -99,18 +103,21 @@ struct ClientListView: View {
                             .font(.title3)
                             .foregroundColor(.white.opacity(0.9))
                     }
-                    .accessibilityLabel("Account menu") // #1
+                    .accessibilityLabel("Account menu")
                 }
             }
             .toolbarBackground(navy, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
-            .task { await fetchClients() } // #14: .task instead of .onAppear
+            // .task (not .onAppear) provides structured concurrency — auto-cancels if the view disappears
+            .task { await fetchClients() }
         }
         .tint(gold)
     }
 
-    // MARK: - Client List (#11: List with custom row styling instead of ScrollView+LazyVStack)
+    // MARK: - Client List
+    // Uses List (not ScrollView+LazyVStack) to get native pull-to-refresh, swipe actions,
+    // and automatic cell reuse. Custom row backgrounds give it a card-style appearance.
 
     private var clientList: some View {
         List {
@@ -133,7 +140,7 @@ struct ClientListView: View {
                 )
                 .listRowSeparator(.hidden)
                 .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
-                // #1: accessibility
+                // Combine child elements into one VoiceOver item with a structured label
                 .accessibilityElement(children: .combine)
                 .accessibilityLabel(accessibilityLabelFor(customer))
                 .accessibilityHint("Double tap to view client details")
@@ -143,13 +150,15 @@ struct ClientListView: View {
         .refreshable { await fetchClients() }
     }
 
-    // #1: structured accessibility label
+    /// Builds a VoiceOver label like "Acme Ltd, code ABC001, Limited Company, Active"
+    /// so screen reader users get all key info without navigating child elements.
     private func accessibilityLabelFor(_ customer: Customer) -> String {
         var parts: [String] = []
         parts.append(customer.displayName)
         if !customer.clientId.isEmpty { parts.append("code \(customer.clientId)") }
         if !customer.type.isEmpty { parts.append(customer.type) }
-        parts.append(customer.active ? "Active" : "Inactive") // #3: status in label
+        // Active/inactive status included because it's not conveyed by colour alone
+        parts.append(customer.active ? "Active" : "Inactive")
         return parts.joined(separator: ", ")
     }
 
@@ -184,7 +193,8 @@ struct ClientListView: View {
                 .fill(Color("CardBackground"))
                 .shadow(color: .black.opacity(0.04), radius: 8, y: 2)
         )
-        .accessibilityElement(children: .ignore) // #1
+        // Collapsed into a single VoiceOver element with a summary label below
+        .accessibilityElement(children: .ignore)
         .accessibilityLabel("Client summary: \(customers.count) total, \(activeCount) active, \(companyCount) companies, \(personCount) individuals")
     }
 
@@ -201,7 +211,7 @@ struct ClientListView: View {
         }
     }
 
-    // MARK: - Empty State (#7)
+    // MARK: - Empty State
 
     private var emptyView: some View {
         ContentUnavailableView {
@@ -214,14 +224,15 @@ struct ClientListView: View {
     // MARK: - Error
 
     private func errorView(_ message: String) -> some View {
-        ScrollView { // #11a: wrap error in ScrollView for pull-to-refresh
+        // Wrapped in ScrollView so pull-to-refresh works even on the error state
+        ScrollView {
             VStack(spacing: 16) {
                 Spacer().frame(height: 100)
 
                 Image(systemName: "wifi.exclamationmark")
                     .font(.system(size: 44))
-                    .foregroundColor(goldDark.opacity(0.6)) // #4: darker gold
-                    .accessibilityHidden(true) // #1
+                    .foregroundColor(goldDark.opacity(0.6))
+                    .accessibilityHidden(true)
 
                 Text("Connection Error")
                     .font(.title3.bold())
@@ -247,7 +258,7 @@ struct ClientListView: View {
             }
             .frame(maxWidth: .infinity)
         }
-        .refreshable { await fetchClients() } // #11a: pull-to-refresh on error
+        .refreshable { await fetchClients() }
     }
 
     // MARK: - Data
@@ -328,10 +339,12 @@ private struct ClientRow: View {
     @ScaledMetric(relativeTo: .body) private var avatarSize: CGFloat = 46
     @ScaledMetric(relativeTo: .caption) private var initialsSize: CGFloat = 15
 
+    // Distinct colours for individuals (purple) vs companies (blue) — darker variants
+    // chosen to meet WCAG contrast requirements against the white card background
     private var kindColor: Color {
         customer.clientKind == "person"
-            ? Color(red: 0.50, green: 0.40, blue: 0.70) // #4: darker purple
-            : Color(red: 0.20, green: 0.45, blue: 0.70) // #4: darker blue
+            ? Color(red: 0.50, green: 0.40, blue: 0.70)
+            : Color(red: 0.20, green: 0.45, blue: 0.70)
     }
 
     private var initials: String {
@@ -356,10 +369,10 @@ private struct ClientRow: View {
                     )
 
                 Text(initials)
-                    .font(.system(size: initialsSize, weight: .bold, design: .rounded)) // #6
+                    .font(.system(size: initialsSize, weight: .bold, design: .rounded))
                     .foregroundColor(kindColor)
             }
-            .frame(width: avatarSize, height: avatarSize) // #6
+            .frame(width: avatarSize, height: avatarSize)
 
             // Info
             VStack(alignment: .leading, spacing: 3) {
@@ -367,7 +380,8 @@ private struct ClientRow: View {
                     .font(.body.weight(.semibold))
                     .foregroundColor(.primary)
                     .lineLimit(1)
-                    .minimumScaleFactor(0.75) // #17
+                    // Allows long names to shrink rather than truncate
+                    .minimumScaleFactor(0.75)
 
                 HStack(spacing: 8) {
                     if !customer.clientId.isEmpty {
@@ -390,7 +404,7 @@ private struct ClientRow: View {
 
             Spacer()
 
-            // #3: Status with icon + text, not color alone
+            // Status uses both icon and text so it's not conveyed by colour alone (WCAG)
             HStack(spacing: 4) {
                 Image(systemName: customer.active ? "checkmark.circle.fill" : "minus.circle.fill")
                     .font(.caption2)
@@ -400,7 +414,7 @@ private struct ClientRow: View {
                     .font(.caption2)
                     .foregroundColor(customer.active ? .green : .secondary)
             }
-            .accessibilityElement(children: .combine) // #1
+            .accessibilityElement(children: .combine)
         }
         .padding(.vertical, 6)
     }
