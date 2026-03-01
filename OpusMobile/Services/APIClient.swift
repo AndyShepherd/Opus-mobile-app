@@ -23,6 +23,7 @@ enum APIError: LocalizedError {
     }
 }
 
+#if DEBUG
 private class SSLBypassDelegate: NSObject, URLSessionDelegate {
     func urlSession(
         _ session: URLSession,
@@ -37,15 +38,22 @@ private class SSLBypassDelegate: NSObject, URLSessionDelegate {
         }
     }
 }
+#endif
 
 enum APIClient {
+    #if DEBUG
     private static let sslBypassSession: URLSession = {
         let config = URLSessionConfiguration.default
         return URLSession(configuration: config, delegate: SSLBypassDelegate(), delegateQueue: nil)
     }()
+    #endif
 
     private static var session: URLSession {
+        #if DEBUG
         Config.skipSSLValidation ? sslBypassSession : .shared
+        #else
+        .shared
+        #endif
     }
 
     static func request<T: Decodable>(
