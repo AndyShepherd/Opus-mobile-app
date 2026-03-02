@@ -12,9 +12,15 @@ private func openEmail(_ address: String) {
 }
 
 struct ClientDetailView: View {
-    let customer: Customer
+    @EnvironmentObject private var authService: AuthService
 
+    @State private var customer: Customer
     @State private var appeared = false
+    @State private var refreshError: String?
+
+    init(customer: Customer) {
+        _customer = State(initialValue: customer)
+    }
     @State private var expandedContactIDs: Set<String> = []  // Tracks which contacts are expanded
     @State private var phoneSheetNumber: String?              // Non-nil triggers the phone action sheet
     @State private var showingLogTime = false
@@ -82,6 +88,7 @@ struct ClientDetailView: View {
                     .padding(.bottom, 40)
                 }
             }
+            .refreshable { await refreshClient() }
         }
         .background(Color(.systemGroupedBackground))
         .navigationBarTitleDisplayMode(.inline)
@@ -129,6 +136,29 @@ struct ClientDetailView: View {
                 }
                 Button("Cancel", role: .cancel) {}
             }
+        }
+        .alert("Refresh Failed", isPresented: Binding(
+            get: { refreshError != nil },
+            set: { if !$0 { refreshError = nil } }
+        )) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(refreshError ?? "")
+        }
+    }
+
+    // MARK: - Data
+
+    private func refreshClient() async {
+        do {
+            let fresh: Customer = try await authService.authenticatedRequest(
+                path: "/api/customers/\(customer.id)"
+            )
+            customer = fresh
+        } catch APIError.unauthorized {
+            // Already handled
+        } catch {
+            refreshError = error.localizedDescription
         }
     }
 
