@@ -88,3 +88,12 @@ struct Customer: Codable, Identifiable, Hashable {
         services = try container.decodeIfPresent([ServiceAssignment].self, forKey: .services) ?? []
     }
 }
+
+/// Generic wrapper for paginated API responses.
+/// The backend returns `{ items, total, page, limit }` when pagination params are provided.
+struct PaginatedResponse<T: Decodable>: Decodable {
+    let items: [T]
+    let total: Int
+    let page: Int
+    let limit: Int
+}

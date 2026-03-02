@@ -174,7 +174,7 @@ struct ClientDetailView: View {
                         .fill(gold.opacity(0.1))
                         .frame(width: 34, height: 34)
 
-                    Image(systemName: "clock.badge.plus")
+                    Image(systemName: "clock")
                         .font(.system(size: detailIconSize, weight: .medium))
                         .foregroundColor(goldDark)
                 }
