@@ -7,7 +7,7 @@ struct ClientListView: View {
     @State private var searchText = ""
     @State private var isLoading = false
     @State private var errorMessage: String?
-    @State private var activeFilter: FilterKind = .all
+    @State private var activeFilter: FilterKind = .active
     @State private var lastUpdated: Date?
 
     private enum FilterKind: String, CaseIterable {
