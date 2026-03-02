@@ -44,6 +44,14 @@ struct LogTimeView: View {
         self.onSave = onSave
     }
 
+    /// Services filtered to only those assigned to the selected client
+    private var filteredServices: [ServiceDefinition] {
+        guard let customer = prefilledCustomer ?? selectedCustomer else { return [] }
+        let assignedCodes = Set(customer.services.map(\.serviceCode))
+        guard !assignedCodes.isEmpty else { return [] }
+        return services.filter { assignedCodes.contains($0.code) }
+    }
+
     private var isValid: Bool {
         switch workType {
         case .client:
@@ -96,10 +104,10 @@ struct LogTimeView: View {
                         }
                     }
 
-                    if !services.isEmpty {
+                    if !filteredServices.isEmpty {
                         Picker("Service", selection: $selectedServiceCode) {
                             Text("None").tag("")
-                            ForEach(services) { service in
+                            ForEach(filteredServices) { service in
                                 Text(service.name).tag(service.code)
                             }
                         }
@@ -193,6 +201,9 @@ struct LogTimeView: View {
                 selectedCustomer = prefilled
                 workType = .client
             }
+        }
+        .onChange(of: selectedCustomer) {
+            selectedServiceCode = ""
         }
         .task {
             await loadFormData()
